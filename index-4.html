@@ -1,0 +1,247 @@
+<!--
+  File: index.html
+  Phase: 8 — File Modularization
+  Last Updated: 2026-07-09
+  Description: HTML shell only. All styles in css/style.css, all logic split across
+               js/storage.js, js/metrics.js, js/notifications.js, js/app.js.
+               Load order matters: storage → metrics → notifications → app.
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>HabitOS</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<canvas id="confetti"></canvas>
+<div class="toast" id="toast"></div>
+
+<div class="app">
+
+  <!-- ════ TODAY ════ -->
+  <div class="view active" id="v-today">
+    <div class="header">
+      <div class="header-top">
+        <div class="logo"><div class="logo-mark">H</div>HabitOS</div>
+        <div class="hdr-date" id="hDate"></div>
+      </div>
+      <div class="hdr-h1">Good <em id="hPart">morning</em>.</div>
+      <div class="hdr-sub" id="hSub">Let's build the streak.</div>
+    </div>
+
+    <div class="day-pill">
+      <div class="day-pill-dot" id="dayPillDot"></div>
+      <span id="dayPillText"></span>
+    </div>
+
+    <div class="quote-wrap">
+      <div class="quote-card">
+        <div class="q-mark">"</div>
+        <div class="q-text" id="qText"></div>
+      </div>
+    </div>
+
+    <div class="next-wrap">
+      <div class="next-card">
+        <div>
+          <div class="next-eyebrow"><span class="pdot"></span>Next Routine</div>
+          <div class="next-name" id="nextName">—</div>
+        </div>
+        <div style="text-align:right">
+          <div class="next-lbl">in</div>
+          <div class="next-val" id="nextVal">—</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="metrics-wrap">
+      <div class="metrics-grid">
+        <div class="met gold">
+          <div class="met-lbl">Best Streak</div>
+          <div class="met-val gold" id="mStreak">0 <span class="met-u">🔥</span></div>
+          <div class="met-sub">days in a row</div>
+        </div>
+        <div class="met blu">
+          <div class="met-lbl">Today</div>
+          <div class="ring-row">
+            <svg viewBox="0 0 50 50">
+              <circle cx="25" cy="25" r="20" fill="none" stroke="rgba(26,86,160,0.12)" stroke-width="5"/>
+              <circle id="todayRing" cx="25" cy="25" r="20" fill="none" stroke="#1A56A0" stroke-width="5"
+                stroke-dasharray="125.7" stroke-dashoffset="125.7" stroke-linecap="round"
+                transform="rotate(-90 25 25)" style="transition:stroke-dashoffset 0.7s ease"/>
+            </svg>
+            <div class="ring-inf">
+              <div class="met-val blu" style="font-size:22px" id="mPct">0%</div>
+              <div class="met-sub" id="mSub">0/0</div>
+            </div>
+          </div>
+        </div>
+        <div class="met grn">
+          <div class="met-lbl">This Week</div>
+          <div class="met-val grn" id="mWeek">0%</div>
+          <div class="met-sub">consistency</div>
+        </div>
+        <div class="met pur">
+          <div class="met-lbl">XP Level</div>
+          <div class="met-val pur" id="mXP">0</div>
+          <div class="met-sub" id="mLevel">Beginner</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="alldone" id="allDone">
+      <div class="ad-icon">🏆</div>
+      <div class="ad-h">Day Complete.</div>
+      <div class="ad-s">Every routine done. The streak lives. 🔥</div>
+    </div>
+
+    <div class="weekly" id="weeklyCard">
+      <div class="wk-top">
+        <div class="wk-ttl">📊 Weekly Report</div>
+        <button class="wk-close" onclick="closeWeekly()">×</button>
+      </div>
+      <div class="wk-grade" id="wGrade">—</div>
+      <div class="wk-row">
+        <div class="wk-stat"><div class="wk-val" id="wDone">—</div><div class="wk-lbl">Done</div></div>
+        <div class="wk-stat"><div class="wk-val" id="wMiss">—</div><div class="wk-lbl">Missed</div></div>
+        <div class="wk-stat"><div class="wk-val" id="wPct">—</div><div class="wk-lbl">Rate</div></div>
+      </div>
+    </div>
+
+    <div class="sec-head">
+      <div class="sec-ttl">Routines</div>
+      <div class="sec-cnt" id="secCnt"></div>
+    </div>
+    <div class="hlist" id="hlist"></div>
+  </div>
+
+  <!-- ════ ACTIVITY ════ -->
+  <div class="view" id="v-activity">
+    <div class="header">
+      <div class="header-top"><div class="logo"><div class="logo-mark">H</div>HabitOS</div></div>
+      <div class="hdr-h1">Activity</div>
+      <div class="hdr-sub" id="actMonth"></div>
+    </div>
+    <div class="hmap-grid" id="hmapGrid"></div>
+    <div class="hmap-legend">
+      <span>Less</span>
+      <div class="hl" style="background:var(--bg3);border:1px solid var(--border)"></div>
+      <div class="hl" style="background:rgba(184,149,42,0.2)"></div>
+      <div class="hl" style="background:rgba(184,149,42,0.45)"></div>
+      <div class="hl" style="background:rgba(184,149,42,0.7)"></div>
+      <div class="hl" style="background:var(--gold2)"></div>
+      <span>More</span>
+    </div>
+    <div class="sec-head"><div class="sec-ttl">Per Routine</div></div>
+    <div class="pr-list" id="prList"></div>
+  </div>
+
+  <!-- ════ SUMMARY ════ -->
+  <div class="view" id="v-summary">
+    <div class="header">
+      <div class="header-top"><div class="logo"><div class="logo-mark">H</div>HabitOS</div></div>
+      <div class="hdr-h1">Summary</div>
+      <div class="hdr-sub">Your month at a glance</div>
+    </div>
+    <div class="sum-card">
+      <div class="sum-hero">
+        <div class="sum-ey" id="sumEy"></div>
+        <div class="sum-h">Your Month in Review</div>
+        <div class="sum-sub">HabitOS · Daily Routine Tracker</div>
+      </div>
+      <div class="sum-rings" id="sumRings"></div>
+      <div class="sum-stats">
+        <div class="sum-stat">
+          <div class="sum-stat-icon">✅</div>
+          <div class="sum-stat-val" id="sumDone" style="color:var(--green)">0</div>
+          <div class="sum-stat-lbl">Completed</div>
+        </div>
+        <div class="sum-stat">
+          <div class="sum-stat-icon">🔥</div>
+          <div class="sum-stat-val" id="sumStreak" style="color:var(--orange)">0</div>
+          <div class="sum-stat-lbl">Best Streak</div>
+        </div>
+        <div class="sum-stat">
+          <div class="sum-stat-icon">📅</div>
+          <div class="sum-stat-val" id="sumDays" style="color:var(--blue)">0</div>
+          <div class="sum-stat-lbl">Active Days</div>
+        </div>
+      </div>
+      <div class="sum-grade-row">
+        <div>
+          <div class="sg-lbl">Monthly Grade</div>
+          <div class="sg-sub" id="sgSub"></div>
+        </div>
+        <div class="sg-big" id="sgBig">—</div>
+      </div>
+    </div>
+    <button class="btn-export" onclick="exportCard()">📸 &nbsp;Save Summary Card</button>
+  </div>
+
+  <!-- ════ SETTINGS ════ -->
+  <div class="view" id="v-settings">
+    <div class="header">
+      <div class="header-top"><div class="logo"><div class="logo-mark">H</div>HabitOS</div></div>
+      <div class="hdr-h1">Settings</div>
+      <div class="hdr-sub">Manage your weekly routines</div>
+    </div>
+    <div class="sett-body">
+      <div class="notif-banner">
+        <div>
+          <div class="ni-ttl">🔔 Routine Reminders</div>
+          <div class="ni-sub" id="notifSub">Get notified before each routine</div>
+        </div>
+        <button class="btn-notif" id="notifBtn" onclick="reqNotif()">Enable</button>
+      </div>
+      <div class="day-tabs" id="dayTabs"></div>
+      <div class="sett-day-label" id="settDayLabel"></div>
+      <button class="btn-add-r" onclick="openModal()">＋ &nbsp;Add Routine for <span id="addBtnDay"></span></button>
+      <div class="sett-list" id="settList"></div>
+      <button class="btn-reset" onclick="resetAll()">Reset All Data</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- Bottom Nav -->
+<div class="bnav">
+  <button class="nb active" onclick="sw('today',this)"><div class="nb-icon">◎</div>Today</button>
+  <button class="nb" onclick="sw('activity',this)"><div class="nb-icon">▦</div>Activity</button>
+  <button class="nb" onclick="sw('summary',this)"><div class="nb-icon">✦</div>Summary</button>
+  <button class="nb" onclick="sw('settings',this)"><div class="nb-icon">⚙</div>Settings</button>
+</div>
+
+<!-- Modal -->
+<div class="modal-ov" id="mOv">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="mTitle">Add Routine</div>
+    <div class="m-field">
+      <div class="m-lbl">Time</div>
+      <input class="m-input" id="iTime" placeholder="e.g. 6:00 AM">
+    </div>
+    <div class="m-field">
+      <div class="m-lbl">Routine Name</div>
+      <input class="m-input" id="iName" placeholder="e.g. Morning Run">
+    </div>
+    <div class="m-field">
+      <div class="m-lbl">Emoji</div>
+      <input class="m-input" id="iEmoji" placeholder="e.g. 🏃" maxlength="2">
+    </div>
+    <button class="m-btn" onclick="saveRoutine()">Save Routine</button>
+    <button class="m-cancel" onclick="closeModal()">Cancel</button>
+  </div>
+</div>
+
+<!-- JS — load order matters: storage → metrics → notifications → app -->
+<script src="js/storage.js"></script>
+<script src="js/metrics.js"></script>
+<script src="js/notifications.js"></script>
+<script src="js/app.js"></script>
+
+</body>
+</html>
