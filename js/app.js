@@ -1,7 +1,7 @@
 /*
   File: js/app.js
   Phase: 8 — File Modularization
-  Last Updated: 2026-07-09
+  Last Updated: 2026-07-10
   Description: Main app logic — all render functions, view switching, modal, settings,
                confetti, toast, and init. Loaded last.
                Depends on: js/storage.js, js/metrics.js, js/notifications.js.
@@ -106,27 +106,38 @@ function renderActivity(){
   const first=new Date(yr,mo,1),last=new Date(yr,mo+1,0);
   const offset=(first.getDay()+6)%7,total=last.getDate();
   const cells=Math.ceil((offset+total)/7)*7;
+
   document.getElementById('actMonth').textContent=TODAY.toLocaleDateString('en-US',{month:'long',year:'numeric'});
+
   const DLBLS=['M','T','W','T','F','S','S'];
   let html=DLBLS.map(l=>`<div class="hmap-lbl">${l}</div>`).join('');
+
   for(let i=0;i<cells;i++){
-    const day=i-offset+1;
-    if(day<1||day>total){html+=`<div style="opacity:0;aspect-ratio:1"></div>`;continue;}
-    const d=new Date(yr,mo,day),dkey=dk(d),isT=dkey===todayKey,dIdx=d.getDay();
+    const dayNum=i-offset+1;
+    if(dayNum<1||dayNum>total){html+=`<div style="opacity:0;aspect-ratio:1"></div>`;continue;}
+    const d=new Date(yr,mo,dayNum);
+    // FIX: use local date string to avoid UTC timezone mismatch
+    const dkey=getLocalDateKey(d);
+    const isT=dkey===getLocalDateKey(TODAY);
+    const dIdx=d.getDay();
     const dayRts=S.days[dIdx]||[];
-    const done=dayRts.filter(r=>isDone(r.id,dkey)).length,tot=dayRts.length;
+    const done=dayRts.filter(r=>isDone(r.id,dkey)).length;
+    const tot=dayRts.length;
     let lv=0;if(tot&&done){const p=done/tot;lv=p>=.75?4:p>=.5?3:p>=.25?2:1;}
     html+=`<div class="hmap-cell${isT?' htoday':''}" data-l="${lv}" title="${d.toLocaleDateString('en-US',{month:'short',day:'numeric'})}: ${done}/${tot}"></div>`;
   }
   document.getElementById('hmapGrid').innerHTML=html;
-  const allRts=[];
-  S.days.forEach(dayRts=>dayRts.forEach(r=>{if(!allRts.find(x=>x.id===r.id))allRts.push(r);}));
+
+  // FIX: use deduplicated routine list
   const tDays=last.getDate();
-  document.getElementById('prList').innerHTML=allRts.length?allRts.map(r=>{
-    const done=Object.keys(S.completions).filter(k=>k.startsWith(r.id+'_')).length;
-    const pct=tDays?Math.min(100,Math.round(done/tDays*100)):0;
-    return `<div class="pr-card"><div class="pr-top"><div class="pr-name">${r.emoji} ${r.name}</div><div class="pr-pct">${pct}%</div></div><div class="pr-bar"><div class="pr-fill" style="width:${pct}%"></div></div></div>`;
-  }).join(''):`<div style="text-align:center;padding:32px;color:var(--ink3);font-size:14px">No routines added yet.</div>`;
+  const uniqueRoutines=getUniqueRoutinesWithProgress(tDays);
+  document.getElementById('prList').innerHTML=uniqueRoutines.length
+    ? uniqueRoutines.map(r=>`
+        <div class="pr-card">
+          <div class="pr-top"><div class="pr-name">${r.emoji} ${r.name}</div><div class="pr-pct">${r.pct}%</div></div>
+          <div class="pr-bar"><div class="pr-fill" style="width:${r.pct}%"></div></div>
+        </div>`).join('')
+    : `<div style="text-align:center;padding:32px;color:var(--ink3);font-size:14px">No routines added yet.</div>`;
 }
 
 function renderSummary(){
@@ -295,3 +306,4 @@ document.getElementById('mOv').addEventListener('click',e=>{
 render();
 if(S.notifGranted&&Notification.permission==='granted') scheduleNotifs();
 setInterval(renderNext,60000);
+    
