@@ -104,7 +104,9 @@ function closeWeekly(){S.wDismissed=todayKey;save();document.getElementById('wee
 function renderActivity(){
   const yr=TODAY.getFullYear(),mo=TODAY.getMonth();
   const first=new Date(yr,mo,1),last=new Date(yr,mo+1,0);
-  const offset=(first.getDay()+6)%7,total=last.getDate();
+  const startDow=first.getDay();
+  const offset=(startDow+6)%7;
+  const total=last.getDate();
   const cells=Math.ceil((offset+total)/7)*7;
 
   document.getElementById('actMonth').textContent=TODAY.toLocaleDateString('en-US',{month:'long',year:'numeric'});
@@ -114,21 +116,25 @@ function renderActivity(){
 
   for(let i=0;i<cells;i++){
     const dayNum=i-offset+1;
-    if(dayNum<1||dayNum>total){html+=`<div style="opacity:0;aspect-ratio:1"></div>`;continue;}
+    if(dayNum<1||dayNum>total){
+      html+=`<div class="hmap-cell hmap-empty"></div>`;
+      continue;
+    }
     const d=new Date(yr,mo,dayNum);
-    // FIX: use local date string to avoid UTC timezone mismatch
     const dkey=getLocalDateKey(d);
     const isT=dkey===getLocalDateKey(TODAY);
     const dIdx=d.getDay();
     const dayRts=S.days[dIdx]||[];
     const done=dayRts.filter(r=>isDone(r.id,dkey)).length;
     const tot=dayRts.length;
-    let lv=0;if(tot&&done){const p=done/tot;lv=p>=.75?4:p>=.5?3:p>=.25?2:1;}
-    html+=`<div class="hmap-cell${isT?' htoday':''}" data-l="${lv}" title="${d.toLocaleDateString('en-US',{month:'short',day:'numeric'})}: ${done}/${tot}"></div>`;
+    let lv=0;
+    if(tot&&done){const p=done/tot;lv=p>=.75?4:p>=.5?3:p>=.25?2:1;}
+    html+=`<div class="hmap-cell${isT?' htoday':''}" data-l="${lv}" title="${d.toLocaleDateString('en-US',{month:'short',day:'numeric'})}: ${done}/${tot}">
+      <span class="hmap-day-num">${dayNum}</span>
+    </div>`;
   }
   document.getElementById('hmapGrid').innerHTML=html;
 
-  // FIX: use deduplicated routine list
   const tDays=last.getDate();
   const uniqueRoutines=getUniqueRoutinesWithProgress(tDays);
   document.getElementById('prList').innerHTML=uniqueRoutines.length
@@ -306,4 +312,4 @@ document.getElementById('mOv').addEventListener('click',e=>{
 render();
 if(S.notifGranted&&Notification.permission==='granted') scheduleNotifs();
 setInterval(renderNext,60000);
-    
+
