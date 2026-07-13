@@ -1,7 +1,7 @@
 /*
   File: js/app.js
   Phase: 8 — File Modularization
-  Last Updated: 2026-07-10
+  Last Updated: 2026-07-13
   Description: Main app logic — all render functions, view switching, modal, settings,
                confetti, toast, and init. Loaded last.
                Depends on: js/storage.js, js/metrics.js, js/notifications.js.
@@ -260,7 +260,50 @@ function resetAll(){
   if(!confirm('Reset ALL data? Cannot be undone.'))return;
   S=defaultState();save();render();renderSettings();showToast('Data reset.');
 }
-function exportCard(){showToast('📸 Screenshot this screen to save your card!');}
+
+function exportCard(){
+  const card = document.getElementById('sum-card-capture');
+  if (!card) { showToast('Nothing to capture.'); return; }
+
+  function doCapture() {
+    showToast('Generating your card...');
+    html2canvas(card, {
+      scale: 3,
+      useCORS: true,
+      backgroundColor: '#ffffff',
+      logging: false,
+    }).then(canvas => {
+      canvas.toBlob(blob => {
+        if (navigator.share && navigator.canShare && navigator.canShare({ files: [new File([blob], 'habitos-summary.png', { type: 'image/png' })] })) {
+          navigator.share({
+            files: [new File([blob], 'habitos-summary.png', { type: 'image/png' })],
+            title: 'HabitOS Monthly Summary',
+          }).catch(() => fallbackDownload(canvas));
+        } else {
+          fallbackDownload(canvas);
+        }
+      }, 'image/png');
+    }).catch(() => showToast('Could not generate card. Try screenshotting manually.'));
+  }
+
+  function fallbackDownload(canvas) {
+    const link = document.createElement('a');
+    link.download = `habitos-summary-${TODAY.toLocaleDateString('en-US',{month:'short',year:'numeric'}).replace(' ','-')}.png`;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+    showToast('Summary card saved! 📸');
+  }
+
+  if (typeof html2canvas !== 'undefined') {
+    doCapture();
+  } else {
+    const script = document.createElement('script');
+    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+    script.onload = doCapture;
+    script.onerror = () => showToast('Could not load capture library. Check your connection.');
+    document.head.appendChild(script);
+  }
+}
 
 function showToast(msg){
   const t=document.getElementById('toast');
@@ -312,4 +355,4 @@ document.getElementById('mOv').addEventListener('click',e=>{
 render();
 if(S.notifGranted&&Notification.permission==='granted') scheduleNotifs();
 setInterval(renderNext,60000);
-
+          
