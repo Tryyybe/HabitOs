@@ -149,37 +149,65 @@ function renderActivity(){
 function renderSummary(){
   const yr=TODAY.getFullYear(),mo=TODAY.getMonth();
   const tDays=new Date(yr,mo+1,0).getDate();
-  document.getElementById('sumEy').textContent=TODAY.toLocaleDateString('en-US',{month:'long',year:'numeric'}).toUpperCase();
+  const mName=TODAY.toLocaleDateString('en-US',{month:'long',year:'numeric'}).toUpperCase();
+  document.getElementById('sumEy').textContent=mName;
+
   let done=0,active=0;
   for(let d=1;d<=tDays;d++){
-    const dkey=dk(new Date(yr,mo,d)),dIdx=new Date(yr,mo,d).getDay();
+    const dkey=getLocalDateKey(new Date(yr,mo,d));
+    const dIdx=new Date(yr,mo,d).getDay();
     const dayDone=(S.days[dIdx]||[]).filter(r=>isDone(r.id,dkey)).length;
-    if(dayDone>0) active++; done+=dayDone;
+    if(dayDone>0) active++;
+    done+=dayDone;
   }
+
   const allRts=[];
   S.days.forEach(dayRts=>dayRts.forEach(r=>{if(!allRts.find(x=>x.id===r.id))allRts.push(r);}));
-  const pct=allRts.length*tDays?Math.round(done/(allRts.length*tDays)*100):0;
+  const possible=allRts.length*tDays;
+  const pct=possible?Math.round(done/possible*100):0;
   const grade=getGrade(pct);
+
+  // Big stats
   document.getElementById('sumDone').textContent=done;
   document.getElementById('sumStreak').textContent=bestStreak();
   document.getElementById('sumDays').textContent=active;
+
+  // Grade
   document.getElementById('sgBig').textContent=grade;
   document.getElementById('sgBig').style.color=GRADE_COLORS[grade];
   document.getElementById('sgSub').textContent=GRADE_LABELS[grade];
+  document.getElementById('sumGradePct').textContent=pct+'%';
+  document.getElementById('sumGradeBar').style.width=pct+'%';
+
+  // Insight strip
+  const topRoutine=getUniqueRoutinesWithProgress(tDays).sort((a,b)=>b.pct-a.pct)[0];
+  const insight = done===0
+    ? '✦ No completions yet this month. Every streak starts with one tick. Start today.'
+    : topRoutine
+    ? `✦ Your strongest routine this month is <strong>${topRoutine.emoji} ${topRoutine.name}</strong> at ${topRoutine.pct}% completion. ${pct>=75?'Outstanding consistency.':pct>=50?'Good momentum — keep pushing.':'Room to grow — small steps compound.'}`
+    : '✦ Keep going. Consistency compounds.';
+  document.getElementById('sumInsight').innerHTML=insight;
+
+  // Rings
   const rData=[
-    {lbl:'Completion',val:pct,col:'#B8952A',disp:pct+'%'},
-    {lbl:'Active Days',val:Math.round(active/tDays*100),col:'#1A56A0',disp:active+'d'},
-    {lbl:'Best Streak',val:Math.min(100,Math.round(bestStreak()/30*100)),col:'#B85C00',disp:bestStreak()+'🔥'},
+    {lbl:'Completion', val:pct,                                            col:'#B8952A', disp:pct+'%'},
+    {lbl:'Active Days',val:Math.round(active/tDays*100),                   col:'#1A56A0', disp:active+'d'},
+    {lbl:'Streak',     val:Math.min(100,Math.round(bestStreak()/30*100)),  col:'#B85C00', disp:bestStreak()+'🔥'},
   ];
   document.getElementById('sumRings').innerHTML=rData.map(rd=>{
-    const c=2*Math.PI*32,off=c-(rd.val/100)*c;
-    return `<div class="sum-ring"><svg viewBox="0 0 76 76">
-      <circle cx="38" cy="38" r="32" fill="none" stroke="rgba(0,0,0,0.06)" stroke-width="7"/>
-      <circle cx="38" cy="38" r="32" fill="none" stroke="${rd.col}" stroke-width="7"
-        stroke-dasharray="${c.toFixed(1)}" stroke-dashoffset="${off.toFixed(1)}"
-        stroke-linecap="round" transform="rotate(-90 38 38)"/>
-      <text x="38" y="43" text-anchor="middle" fill="#1A1A18" font-size="10" font-weight="800" font-family="Inter,sans-serif">${rd.disp}</text>
-    </svg><div class="sum-ring-lbl">${rd.lbl}</div></div>`;
+    const c=2*Math.PI*29,off=c-(rd.val/100)*c;
+    return `<div class="sum-ring-item">
+      <svg viewBox="0 0 72 72">
+        <circle cx="36" cy="36" r="29" fill="none" stroke="rgba(0,0,0,0.06)" stroke-width="6"/>
+        <circle cx="36" cy="36" r="29" fill="none" stroke="${rd.col}" stroke-width="6"
+          stroke-dasharray="${c.toFixed(1)}" stroke-dashoffset="${off.toFixed(1)}"
+          stroke-linecap="round" transform="rotate(-90 36 36)"
+          style="transition:stroke-dashoffset 1s ease"/>
+        <text x="36" y="40" text-anchor="middle" fill="#1A1A18" font-size="10"
+          font-weight="800" font-family="Inter,sans-serif">${rd.disp}</text>
+      </svg>
+      <div class="sum-ring-item-label">${rd.lbl}</div>
+    </div>`;
   }).join('');
 }
 
@@ -355,4 +383,4 @@ document.getElementById('mOv').addEventListener('click',e=>{
 render();
 if(S.notifGranted&&Notification.permission==='granted') scheduleNotifs();
 setInterval(renderNext,60000);
-          
+  
