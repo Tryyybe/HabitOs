@@ -147,39 +147,71 @@
       <div class="hdr-h1">Summary</div>
       <div class="hdr-sub">Your month at a glance</div>
     </div>
-    <div class="sum-card" id="sum-card-capture">
-      <div class="sum-hero">
-        <div class="sum-ey" id="sumEy"></div>
-        <div class="sum-h">Your Month in Review</div>
-        <div class="sum-sub">HabitOS · Daily Routine Tracker</div>
-      </div>
-      <div class="sum-rings" id="sumRings"></div>
-      <div class="sum-stats">
-        <div class="sum-stat">
-          <div class="sum-stat-icon">✅</div>
-          <div class="sum-stat-val" id="sumDone" style="color:var(--green)">0</div>
-          <div class="sum-stat-lbl">Completed</div>
+
+    <!-- Capture zone -->
+    <div id="sum-card-capture">
+
+      <!-- ── HERO BANNER ── -->
+      <div class="sum-hero-new">
+        <div class="sum-hero-bg"></div>
+        <div class="sum-hero-content">
+          <div class="sum-hero-eyebrow" id="sumEy"></div>
+          <div class="sum-hero-title">Monthly<br>Review</div>
+          <div class="sum-hero-brand">HabitOS · Daily Routine Tracker</div>
         </div>
-        <div class="sum-stat">
-          <div class="sum-stat-icon">🔥</div>
-          <div class="sum-stat-val" id="sumStreak" style="color:var(--orange)">0</div>
-          <div class="sum-stat-lbl">Best Streak</div>
-        </div>
-        <div class="sum-stat">
-          <div class="sum-stat-icon">📅</div>
-          <div class="sum-stat-val" id="sumDays" style="color:var(--blue)">0</div>
-          <div class="sum-stat-lbl">Active Days</div>
+        <div class="sum-hero-grade-bubble">
+          <div class="sum-hero-grade-label">Grade</div>
+          <div class="sum-hero-grade-val" id="sgBig">—</div>
         </div>
       </div>
-      <div class="sum-grade-row">
-        <div>
-          <div class="sg-lbl">Monthly Grade</div>
-          <div class="sg-sub" id="sgSub"></div>
+
+      <!-- ── BIG STAT ROW ── -->
+      <div class="sum-bigstats">
+        <div class="sum-bigstat">
+          <div class="sum-bigstat-val" id="sumDone">0</div>
+          <div class="sum-bigstat-label">Routines<br>Completed</div>
+          <div class="sum-bigstat-icon">✅</div>
         </div>
-        <div class="sg-big" id="sgBig">—</div>
+        <div class="sum-bigstat-divider"></div>
+        <div class="sum-bigstat">
+          <div class="sum-bigstat-val" id="sumStreak">0</div>
+          <div class="sum-bigstat-label">Best<br>Streak</div>
+          <div class="sum-bigstat-icon">🔥</div>
+        </div>
+        <div class="sum-bigstat-divider"></div>
+        <div class="sum-bigstat">
+          <div class="sum-bigstat-val" id="sumDays">0</div>
+          <div class="sum-bigstat-label">Active<br>Days</div>
+          <div class="sum-bigstat-icon">📅</div>
+        </div>
       </div>
-    </div>
-    <button class="btn-export" onclick="exportCard()">📸 &nbsp;Save Summary Card</button>
+
+      <!-- ── PROGRESS RING SECTION ── -->
+      <div class="sum-rings-new" id="sumRings"></div>
+
+      <!-- ── GRADE CARD ── -->
+      <div class="sum-grade-card">
+        <div class="sum-grade-left">
+          <div class="sum-grade-title">Monthly Grade</div>
+          <div class="sum-grade-sub" id="sgSub">—</div>
+        </div>
+        <div class="sum-grade-right">
+          <div class="sum-grade-bar-wrap">
+            <div class="sum-grade-bar" id="sumGradeBar"></div>
+          </div>
+          <div class="sum-grade-pct" id="sumGradePct">0%</div>
+        </div>
+      </div>
+
+      <!-- ── INSIGHT STRIP ── -->
+      <div class="sum-insight" id="sumInsight"></div>
+
+    </div><!-- end capture zone -->
+
+    <button class="btn-export-new" onclick="exportCard()">
+      <span class="btn-export-icon">📸</span>
+      <span>Save Summary Card</span>
+    </button>
   </div>
 
   <!-- ════ SETTINGS ════ -->
@@ -245,4 +277,4 @@
 
 </body>
   </html>
-      
+  
